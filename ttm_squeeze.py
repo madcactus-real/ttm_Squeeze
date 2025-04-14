@@ -141,8 +141,6 @@ class TTMSqueeze:
             self.es = Future(symbol=new_symbol, lastTradeDateOrContractMonth=contract_month, exchange='CME', currency='USD')
             try:
                 self.ib.qualifyContracts(self.es)
-                self.setup_realtime_bars()
-                self.setup_realtime_bars()
                 self.global_df = None
                 self.fig.canvas.draw_idle()
             except Exception:
@@ -155,8 +153,6 @@ class TTMSqueeze:
             self.es = Future(symbol=new_symbol, lastTradeDateOrContractMonth=contract_month, exchange='CME', currency='USD')
             try:
                 self.ib.qualifyContracts(self.es)
-                self.setup_realtime_bars()
-                self.setup_realtime_bars()
                 self.global_df = None
                 self.fig.canvas.draw_idle()
             except Exception:
@@ -523,43 +519,6 @@ class TTMSqueeze:
                     self.analysis_text.set_color(new_color)
                     self.current_message_color = new_color
                     self.fig.canvas.draw()
-
-
-def setup_realtime_bars(self):
-    try:
-        if hasattr(self, 'realtime_bar_data'):
-            self.ib.cancelRealTimeBars(self.realtime_bar_data)
-        self.realtime_bar_data = self.ib.reqRealTimeBars(
-            self.es,
-            barSize=5,
-            whatToShow='TRADES',
-            useRTH=False
-        )
-        self.ib.pendingTickersEvent += self.on_realtime_bar
-        print("[DEBUG] Real-time bars subscription started.")
-    except Exception as e:
-        print(f"[ERROR] Failed to start real-time bars: {e}")
-
-def on_realtime_bar(self, tickers):
-    for ticker in tickers:
-        if ticker.contract.conId != self.es.conId:
-            continue
-        bar_time = ticker.time.replace(tzinfo=None)
-        new_row = {
-            'open': ticker.open,
-            'high': ticker.high,
-            'low': ticker.low,
-            'close': ticker.close,
-            'volume': ticker.volume
-        }
-        new_df = pd.DataFrame([new_row], index=[bar_time])
-        if self.global_df is None:
-            self.global_df = new_df
-        else:
-            self.global_df = pd.concat([self.global_df, new_df]).drop_duplicates().sort_index()
-        print(f"[DEBUG] New real-time bar: {bar_time}, Close: {ticker.close}")
-        self.update_plot()
-
                     return
             else:
                 new_df = util.df(bars)
@@ -819,8 +778,6 @@ def on_realtime_bar(self, tickers):
 
         try:
             self.ib.qualifyContracts(self.es)
-        self.setup_realtime_bars()
-        self.setup_realtime_bars()
         except Exception:
             self.show_warning_popup("Contract Error", f"Failed to qualify contract: {self.es}. Please check the contract details.")
             self.cleanup()
@@ -865,22 +822,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-def update_plot(self):
-    if self.global_df is None or self.global_df.empty:
-        return
-    df = self.global_df.copy()
-    df = df.tail(100)
-    df['momentum'] = df['close'] - df['close'].shift(5)
-    df['momentum'] = df['momentum'].fillna(0)
-
-    self.ax1.clear()
-    self.ax2.clear()
-    self.ax1.set_facecolor('#D3D3D3')
-    self.ax2.set_facecolor('#D3D3D3')
-
-    self.ax1.plot(df.index, df['close'], color='black')
-    self.ax2.bar(df.index, df['momentum'], color='green')
-    self.ax2.axhline(0, color='black', linestyle='--')
-
-    self.fig.canvas.draw_idle()
